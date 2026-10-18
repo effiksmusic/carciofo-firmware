@@ -2,12 +2,19 @@
 
 A repository to collect different firmwares for the daisy-based Carciofo module, the 6hp successor of the [Löwenzahnhonig](https://github.com/wgd-modular/loewenzahnhonig-firmware). Same four pots and two CV inputs, plus two buttons and an RGB LED.
 
+<img src="media/carciofo.jpg" height="500">
+
 
 ## Flash your module
 
 Flash your module straight from the browser with the [Carciofo web flasher](https://wgd-modular.github.io/carciofo-firmware/). Open it in Google Chrome or Edge, connect the Daisy Seed over USB, hold BOOT and tap RESET to enter the bootloader, then pick a firmware and press flash. It lists every firmware of the latest release together with its controls, and can also flash a local `.bin` you built yourself.
 
 Prefer to grab the raw binaries? Every firmware is pre-compiled and attached to the [latest release](https://github.com/wgd-modular/carciofo-firmware/releases/latest).
+
+
+## Manual
+
+The [Carciofo manual](https://github.com/wgd-modular/carciofo-firmware/releases/latest/download/carciofo-manual.pdf) is a PDF covering the module itself, how to flash it and every firmware of the latest release with all its controls. It is built from this repository, so it always matches the firmwares it comes with.
 
 
 ## Controls
@@ -35,26 +42,29 @@ This step is only required if you want to modify a firmware or create your own. 
 git clone --recursive https://github.com/wgd-modular/carciofo-firmware
 ```
 
-Next you run the provided script to compile the libraries:
+If you cloned without `--recursive`, fetch them afterwards with `git submodule update --init --recursive`.
+
+Everything else, the ARM GCC toolchain, `make` and Python included, is managed by [pixi](https://pixi.sh), so nothing has to be installed system-wide apart from pixi itself. It works the same on Linux and macOS (Intel and Apple Silicon); on Windows use WSL. To compile all firmwares run:
 
 ```shell
-./build_libs.sh
+pixi run build
 ```
 
-Finally, if you want to compile all firmwares you can run the provided Python script:
+The first run sets up the toolchain and compiles both libraries, later runs reuse them. To compile one specific firmware, pass its name:
 
 ```shell
-python ./build_firmwares.py
+pixi run build reverb
 ```
 
-If instead you want to compile one specific firmware, you should change your working directory to that of the firmware and execute the Makefile. For example:
+This places the firmware in `src/reverb/build/reverb.bin`, ready for the web flasher. `pixi run build-libs` only rebuilds the libraries, and `pixi run clean` removes all build output again.
+
+The manual is built in the same way, with its own small environment, into `manual/build/carciofo-manual.pdf`:
 
 ```shell
-cd src/reverb
-make
+pixi run manual
 ```
 
-This will compile the reverb firmware and place its output in the `build` subdirectory.
+When working on a single firmware it can be handy to drop into the environment with `pixi shell` and call `make` inside the firmware's folder directly.
 
 
 ## Writing a firmware
@@ -97,3 +107,5 @@ int main(void) {
 ## Contributing
 
 New firmwares for the Carciofo module are always very welcome. Feel free to open a PR anytime. Each new firmware should be located in a new sub-folder with the same name as the `.cpp` file together with a `README.md` file telling users about the controls and other possibly interesting stuff.
+
+That README also becomes the firmware's chapter in the manual, no extra work needed. The first `#` heading is taken as the firmware's name, any text before the first `##` heading as its introduction, and every `##` heading becomes a section of the chapter. A section called `## Controls` with a table of the controls is shown on the web flasher too and gets highlighted in the manual. Who worked on a firmware and when it last changed is read from the git history of its folder, co-authors included.
